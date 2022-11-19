@@ -3,18 +3,26 @@ from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 # Create your views here.
+from .models import Advocate
+from .serializers import AdvocateSerializer
 
 @api_view(['GET'])
 def endpoints(request):
     data = ['/advocates', 'advocates/:username']
     return Response(data )
 
-@api_view()
+@api_view(['GET'])
 def advocate_list(request):
-    data = ['Dennis', 'Tadas']
-    return JsonResponse(data, safe=False)
+    query = request.GET.get('query')
+    if query == None:
+        query = ''
+    
+    advocates = Advocate.objects.filter(username__icontains=query)
+    serializer = AdvocateSerializer(advocates, many=True)
+    return Response(serializer.data)
 
-@api_view()
+@api_view(['GET'])
 def advocate_detail(request, username):
-    data = username
-    return JsonResponse(data, safe=False)
+    advocate = Advocate.objects.get(username=username)
+    serializer = AdvocateSerializer(advocate, many=False)
+    return Response(serializer.data)
